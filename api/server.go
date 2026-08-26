@@ -23,6 +23,7 @@ func NewServer(queries *db.Queries) *Server {
 	router.GET("/ping", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+	router.POST("/tasks", server.createTask)
 
 	return server
 }
