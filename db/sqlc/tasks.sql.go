@@ -9,6 +9,33 @@ import (
 	"context"
 )
 
+const completeTask = `-- name: CompleteTask :one
+UPDATE "tasks"
+SET completed = $1, updated_at = now()
+WHERE id = $2
+AND deleted_at IS NULL
+RETURNING id, title, completed, created_at, updated_at, deleted_at
+`
+
+type CompleteTaskParams struct {
+	Completed bool  `json:"completed"`
+	ID        int64 `json:"id"`
+}
+
+func (q *Queries) CompleteTask(ctx context.Context, arg CompleteTaskParams) (Task, error) {
+	row := q.db.QueryRow(ctx, completeTask, arg.Completed, arg.ID)
+	var i Task
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Completed,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
 const createTask = `-- name: CreateTask :one
 INSERT INTO "tasks" (
     title
@@ -19,6 +46,98 @@ INSERT INTO "tasks" (
 
 func (q *Queries) CreateTask(ctx context.Context, title string) (Task, error) {
 	row := q.db.QueryRow(ctx, createTask, title)
+	var i Task
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Completed,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const deleteTask = `-- name: DeleteTask :exec
+UPDATE "tasks"
+SET deleted_at = now(), updated_at = now()
+WHERE id = $1
+AND deleted_at IS NULL
+`
+
+func (q *Queries) DeleteTask(ctx context.Context, id int64) error {
+	_, err := q.db.Exec(ctx, deleteTask, id)
+	return err
+}
+
+const getTask = `-- name: GetTask :one
+SELECT id, title, completed, created_at, updated_at, deleted_at FROM "tasks"
+WHERE id = $1 
+AND deleted_at IS NULL
+`
+
+func (q *Queries) GetTask(ctx context.Context, id int64) (Task, error) {
+	row := q.db.QueryRow(ctx, getTask, id)
+	var i Task
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Completed,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const listTasks = `-- name: ListTasks :many
+SELECT id, title, completed, created_at, updated_at, deleted_at FROM "tasks"
+WHERE deleted_at IS NULL
+ORDER BY id
+`
+
+func (q *Queries) ListTasks(ctx context.Context) ([]Task, error) {
+	rows, err := q.db.Query(ctx, listTasks)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Task
+	for rows.Next() {
+		var i Task
+		if err := rows.Scan(
+			&i.ID,
+			&i.Title,
+			&i.Completed,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateTask = `-- name: UpdateTask :one
+UPDATE "tasks"
+SET title = $1, updated_at = now()
+WHERE id = $2
+AND deleted_at IS NULL
+RETURNING id, title, completed, created_at, updated_at, deleted_at
+`
+
+type UpdateTaskParams struct {
+	Title string `json:"title"`
+	ID    int64  `json:"id"`
+}
+
+func (q *Queries) UpdateTask(ctx context.Context, arg UpdateTaskParams) (Task, error) {
+	row := q.db.QueryRow(ctx, updateTask, arg.Title, arg.ID)
 	var i Task
 	err := row.Scan(
 		&i.ID,
