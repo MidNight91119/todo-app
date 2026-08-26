@@ -12,3 +12,9 @@ todo-app
 .vscode/
 .idea/
 .cursor/
+
+# Claude
+CLAUDE.md
+
+# Logs
+*.log
