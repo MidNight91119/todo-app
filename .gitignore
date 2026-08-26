@@ -1,0 +1,14 @@
+# Compiled binary
+todo-app
+
+# Secrets — never commit
+.env
+*.env
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+.cursor/
