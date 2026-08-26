@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/MidNight91119/todo-app/api"
+	db "github.com/MidNight91119/todo-app/db/sqlc"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -22,5 +24,12 @@ func main() {
 		log.Fatal("connection failed: ", err)
 	}
 
-	log.Print("server connected\n")
+	log.Print("pool connected\n")
+
+	queries := db.New(pool)
+	server := api.NewServer(queries)
+
+	if err := server.Start(":8080"); err != nil {
+		log.Fatal("cannot start server: ", err)
+	}
 }
