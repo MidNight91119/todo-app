@@ -26,9 +26,9 @@ func NewServer(queries *db.Queries) *Server {
 	router.POST("/tasks", server.createTask)
 	router.GET("/tasks", server.listTasks)
 	router.GET("/tasks/:id", server.getTask)
-	// router.PATCH("/tasks/:id", server.updateTask)
-	// router.PATCH("/tasks/:id/complete", server.completeTask)
-	// router.DELETE("/tasks/:id", server.deleteTask)
+	router.PATCH("/tasks/:id", server.updateTask)
+	router.PATCH("/tasks/:id/complete", server.completeTask)
+	router.DELETE("/tasks/:id", server.deleteTask)
 
 	return server
 }
