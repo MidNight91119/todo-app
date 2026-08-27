@@ -30,6 +30,9 @@ func NewServer(queries *db.Queries) *Server {
 	router.PATCH("/tasks/:id/complete", server.completeTask)
 	router.DELETE("/tasks/:id", server.deleteTask)
 
+	router.Static("/static", "./static")
+	router.StaticFile("/", "./static/index.html")
+
 	return server
 }
 

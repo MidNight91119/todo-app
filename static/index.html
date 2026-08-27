@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TODO App</title>
+  </head>
+  <body>
+    <h1>TODO App</h1>
+    <input id="title" type="text" placeholder="What needs doing?" />
+    <button id="add">Add</button>
+    <ul id="list"></ul>
+
+    <script>
+      async function load() {
+        const res = await fetch("/tasks");
+        const tasks = await res.json();
+        // console.log(tasks);
+        const list = document.getElementById("list");
+        list.innerHTML = "";
+        tasks.forEach((task) => {
+          const li = document.createElement("li");
+          li.textContent = task.title;
+          list.appendChild(li);
+
+          const box = document.createElement("input");
+          box.type = "checkbox";
+          box.checked = task.completed;
+          box.addEventListener("change", async () => {
+            await fetch(`/tasks/${task.id}/complete`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ completed: box.checked }),
+            });
+            load();
+          });
+          li.prepend(box);
+
+          const delButton = document.createElement("button");
+          delButton.textContent = "x";
+          delButton.addEventListener("click", async () => {
+            await fetch(`/tasks/${task.id}`, {
+              method: "DELETE",
+            });
+            load();
+          });
+          li.append(delButton);
+
+          if (task.completed) li.style.textDecoration = "line-through";
+        });
+      }
+
+      document.getElementById("add").addEventListener("click", async () => {
+        const input = document.getElementById("title");
+        const title = input.value.trim();
+        if (!title) return;
+
+        await fetch("/tasks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title }),
+        });
+
+        input.value = "";
+        load();
+      });
+
+      load();
+    </script>
+  </body>
+</html>
