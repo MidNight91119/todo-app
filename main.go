@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/MidNight91119/todo-app/api"
 	db "github.com/MidNight91119/todo-app/db/sqlc"
@@ -10,9 +11,19 @@ import (
 )
 
 func main() {
+	dsn := os.Getenv("DATABASE_URL")
+	if dsn == "" {
+		dsn = "postgresql://root:secret@localhost:5432/todo_app?sslmode=disable"
+	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	ctx := context.Background()
 
-	pool, err := pgxpool.New(ctx, "postgresql://root:secret@localhost:5432/todo_app?sslmode=disable")
+	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		log.Fatal("pool creation failed: ", err)
 	}
@@ -29,7 +40,7 @@ func main() {
 	queries := db.New(pool)
 	server := api.NewServer(queries)
 
-	if err := server.Start(":8080"); err != nil {
+	if err := server.Start(":" + port); err != nil {
 		log.Fatal("cannot start server: ", err)
 	}
 }
