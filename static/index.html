@@ -4,12 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>TODO App</title>
+    <link rel="stylesheet" href="/static/style.css" />
   </head>
   <body>
-    <h1>TODO App</h1>
-    <input id="title" type="text" placeholder="What needs doing?" />
-    <button id="add">Add</button>
-    <ul id="list"></ul>
+    <main class="app">
+      <h1>Tasks</h1>
+      <div class="add-row">
+        <input id="title" type="text" placeholder="What needs doing?" autocomplete="off" />
+        <button id="add">Add</button>
+      </div>
+      <ul id="list"></ul>
+      <p id="empty" class="empty" hidden>Nothing here. Add your first task.</p>
+    </main>
 
     <script>
       async function load() {
@@ -18,13 +24,20 @@
         // console.log(tasks);
         const list = document.getElementById("list");
         list.innerHTML = "";
+        document.getElementById("empty").hidden = tasks.length > 0;
         tasks.forEach((task) => {
           const li = document.createElement("li");
-          li.textContent = task.title;
+          li.className = "task";
+
+          const title = document.createElement("span");
+          title.className = "task-title";
+          title.textContent = task.title;
+          li.appendChild(title);
           list.appendChild(li);
 
           const box = document.createElement("input");
           box.type = "checkbox";
+          box.className = "task-check";
           box.checked = task.completed;
           box.addEventListener("change", async () => {
             await fetch(`/tasks/${task.id}/complete`, {
@@ -37,7 +50,9 @@
           li.prepend(box);
 
           const delButton = document.createElement("button");
-          delButton.textContent = "x";
+          delButton.className = "task-delete";
+          delButton.textContent = "×";
+          delButton.setAttribute("aria-label", "Delete task");
           delButton.addEventListener("click", async () => {
             await fetch(`/tasks/${task.id}`, {
               method: "DELETE",
@@ -46,7 +61,7 @@
           });
           li.append(delButton);
 
-          if (task.completed) li.style.textDecoration = "line-through";
+          if (task.completed) li.classList.add("completed");
         });
       }
 
