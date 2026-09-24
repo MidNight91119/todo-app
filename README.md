@@ -6,6 +6,18 @@ A small task manager with a Go + Postgres backend and a dependency-free HTML/JS 
 
 > Hosted on Render's free tier, which sleeps after ~15 minutes of inactivity. The first request after a nap takes ~30 seconds while the service wakes up. Subsequent requests are instant.
 
+## Architecture
+
+```mermaid
+flowchart LR
+    B[Browser<br/>plain HTML + JS] -->|fetch, same origin| G[Gin router]
+    G --> H[task handlers<br/>validate, map errors]
+    H --> Q[sqlc queries]
+    Q --> PG[(Postgres<br/>tasks table)]
+```
+
+A task's life: created → (completed ⇄ not completed) → soft-deleted (`deleted_at` set, hidden from every read).
+
 ## Stack
 
 | Layer | Choice | Why |
